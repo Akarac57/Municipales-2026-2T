@@ -478,39 +478,32 @@ function rAdmin(){
   // Real results form
   let rrHtml='';
   if(S.status==='closed'&&S.communes.length>0){
-    rrHtml=`<div class="card">
-      <span class="card-title">📥 Résultats officiels du 1er tour</span>
-      ${S.communes.map((com,ci)=>{
-        const tot=com.candidates.reduce((s,c)=>s+(parseFloat(S.realResults[`${ci}-${c.name}`])||0),0);
-        const ok=Math.abs(tot-100)<0.2;
-        return `<div style="margin-bottom:1.3rem">
-          <div class="sec-lbl">${h(com.name)} <span class="commune-tag">${h(com.codeInsee||'')}</span></div>
-          ${com.candidates.map(c=>{
-            const rval=parseFloat(S.realResults[`${ci}-${c.name}`])||0;
-            return `<div style="margin-bottom:12px">
-              <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-                <span style="width:10px;height:10px;border-radius:50%;background:${c.color};flex-shrink:0;border:1px solid rgba(0,0,0,.1)"></span>
-                <div>
-                  ${c.tete?`<div style="font-size:.72rem;color:var(--ink2);font-weight:500">${h(c.tete)}</div>`:''}
-                  <div style="font-size:.85rem;font-weight:700">${h(c.name)}</div>
-                  ${bar1T(c.score1T, c.color)}`
-                </div>
-                ${c.nuance?`<span class="nuance-pill" style="flex-shrink:0">${h(c.nuance)}</span>`:''}
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-                <input type="number" min="0" max="100" step="0.1" value="${rval||''}" placeholder="0"
-                  oninput="S.realResults['${ci}-${j(c.name)}']=parseFloat(this.value)||0;updRealTot(${ci})"
-                  style="width:90px;font-family:inherit;font-size:1rem;font-weight:700;border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--bg);text-align:right">
-                <span style="font-size:.9rem;color:var(--ink3)">%</span>
-              </div>
-            </div>`;
-          }).join('')}
-          <div style="text-align:right;margin-top:4px">
-            <span class="tot-chip ${ok?'tok':tot===0?'tneut':'twarn'}" id="rtot${ci}">${tot.toFixed(1)}%</span>
-          </div>
-        </div>`;}).join('')}
-      <button class="btn btn-success btn-block" onclick="doSaveReal()">💾 Enregistrer les résultats</button>
-    </div>`;
+    rrHtml='<div class="card"><span class="card-title">📥 Résultats officiels du 1er tour</span>';
+    S.communes.forEach((com,ci)=>{
+      const tot=com.candidates.reduce((s,c)=>s+(parseFloat(S.realResults[ci+'-'+c.name])||0),0);
+      const ok=Math.abs(tot-100)<0.2;
+      rrHtml+='<div style="margin-bottom:1.3rem"><div class="sec-lbl">'+h(com.name)+' <span class="commune-tag">'+h(com.codeInsee||'')+'</span></div>';
+      com.candidates.forEach((c,ki)=>{
+        const rval=parseFloat(S.realResults[ci+'-'+c.name])||0;
+        const keyStr=ci+'-'+c.name.replace(/'/g,"\'");
+        rrHtml+='<div style="margin-bottom:12px">';
+        rrHtml+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">';
+        rrHtml+='<span style="width:10px;height:10px;border-radius:50%;background:'+c.color+';flex-shrink:0;border:1px solid rgba(0,0,0,.1)"></span>';
+        rrHtml+='<div style="flex:1">';
+        if(c.tete) rrHtml+='<div style="font-size:.72rem;color:var(--ink2);font-weight:500">'+h(c.tete)+'</div>';
+        rrHtml+='<div style="font-size:.85rem;font-weight:700">'+h(c.name)+'</div>';
+        rrHtml+=bar1T(c.score1T, c.color);
+        rrHtml+='</div>';
+        if(c.nuance) rrHtml+='<span class="nuance-pill" style="flex-shrink:0">'+h(c.nuance)+'</span>';
+        rrHtml+='</div>';
+        rrHtml+='<div style="display:flex;align-items:center;gap:8px;margin-top:6px">';
+        rrHtml+='<input type="number" min="0" max="100" step="0.1" value="'+(rval||'')+'" placeholder="0" data-ci="'+ci+'" data-ki="'+ki+'" oninput="updReal(this)" style="width:90px;font-family:inherit;font-size:1rem;font-weight:700;border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--bg);text-align:right">';
+        rrHtml+='<span style="font-size:.9rem;color:var(--ink3)">%</span>';
+        rrHtml+='</div></div>';
+      });
+      rrHtml+='<div style="text-align:right;margin-top:4px"><span class="tot-chip '+(ok?'tok':tot===0?'tneut':'twarn')+'" id="rtot'+ci+'">'+tot.toFixed(1)+'%</span></div></div>';
+    });
+    rrHtml+='<button class="btn btn-success btn-block" onclick="doSaveReal()">💾 Enregistrer les résultats</button></div>';
   }
 
   el.innerHTML=`
@@ -670,6 +663,14 @@ function pauseSync(){
   _editing=true;
   clearTimeout(_editTimer);
   _editTimer=setTimeout(()=>{ _editing=false; }, 3000); // reprend 3s après la dernière frappe
+}
+function updReal(input){
+  const ci=parseInt(input.dataset.ci);
+  const ki=parseInt(input.dataset.ki);
+  const com=S.communes[ci];
+  if(!com||!com.candidates[ki]) return;
+  S.realResults[ci+'-'+com.candidates[ki].name]=parseFloat(input.value)||0;
+  updRealTot(ci);
 }
 function updRealTot(ci){
   pauseSync();
