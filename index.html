@@ -610,10 +610,10 @@ let _searchResults = []; // index en mémoire, évite les problèmes d'encodage 
 
 function searchCommunes(q){
   const list=document.getElementById('autocomplete-list');
-  const qn=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const qn=q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const results=[];
   for(const [code, data] of Object.entries(COMMUNES_DB)){
-    const nomN=data[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const nomN=data[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     if(nomN.startsWith(qn) || code.startsWith(q)){
       results.push({code, name:data[0], dept:data[1], listes:data[2]});
       if(results.length>=12) break;
@@ -622,7 +622,7 @@ function searchCommunes(q){
   if(results.length<5){
     for(const [code, data] of Object.entries(COMMUNES_DB)){
       if(results.find(r=>r.code===code)) continue;
-      const nomN=data[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      const nomN=data[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       if(nomN.includes(qn)){
         results.push({code, name:data[0], dept:data[1], listes:data[2]});
         if(results.length>=12) break;
