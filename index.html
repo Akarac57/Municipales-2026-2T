@@ -397,7 +397,7 @@ function rHome(){
     : `<div class="alert al-info">🔒 Paris fermés — ${n} pronostic${n>1?'s':''} enregistré${n>1?'s':''}.</div>`;
   el.innerHTML=`<div class="hero">
     <div class="hero-badge"><div class="rf-stripes" style="width:18px;height:12px;border-radius:2px"><span></span><span></span><span></span></div> République Française · Élections Municipales 2026</div>
-    <h1>Concours de <em>pronostics</em><br>du 1er tour</h1>
+    <h1>Concours de <em>pronostics</em><br>du 2ème tour</h1>
     <p>Anticipez les résultats du 2ème tour commune par commune, liste par liste.<br>Le pronostic le plus précis gagne !</p>
     <div class="hero-cards">
       ${[['⚙️','Configurer','L\'admin recherche les communes et importe les listes automatiquement.'],
@@ -479,7 +479,7 @@ function rAdmin(){
   let rrHtml='';
   if(S.status==='closed'&&S.communes.length>0){
     rrHtml=`<div class="card">
-      <span class="card-title">📥 Résultats officiels du 1er tour</span>
+      <span class="card-title">📥 Résultats officiels du 2ème tour</span>
       ${S.communes.map((com,ci)=>{
         const tot=com.candidates.reduce((s,c)=>s+(parseFloat(S.realResults[`${ci}-${c.name}`])||0),0);
         const ok=Math.abs(tot-100)<0.2;
