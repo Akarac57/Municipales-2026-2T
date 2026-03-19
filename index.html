@@ -493,10 +493,7 @@ function rAdmin(){
                 <div>
                   ${c.tete?`<div style="font-size:.72rem;color:var(--ink2);font-weight:500">${h(c.tete)}</div>`:''}
                   <div style="font-size:.85rem;font-weight:700">${h(c.name)}</div>
-                  ${c.score1T!==null&&c.score1T!==undefined?`<div style="margin-top:4px">
-                    <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--ink3);margin-bottom:2px"><span>1er tour</span><strong>${c.score1T}%</strong></div>
-                    <div style="height:4px;background:#f0ece4;border-radius:10px;overflow:hidden"><div style="height:100%;width:${c.score1T}%;background:${c.color};opacity:.4;border-radius:10px"></div></div>
-                  </div>`:''}`
+                  ${bar1T(c.score1T, c.color)}`
                 </div>
                 ${c.nuance?`<span class="nuance-pill" style="flex-shrink:0">${h(c.nuance)}</span>`:''}
               </div>
@@ -722,10 +719,7 @@ function rPlayer(){
             <div style="min-width:0">
               ${cand.tete?`<div style="font-size:.78rem;color:var(--ink2);font-weight:500">${h(cand.tete)}</div>`:''}
               <div style="font-size:.85rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(cand.name)}</div>
-              ${cand.score1T!==null&&cand.score1T!==undefined?`<div style="margin-top:5px">
-                <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--ink3);margin-bottom:2px"><span>Score 1er tour</span><strong>${cand.score1T}%</strong></div>
-                <div style="height:5px;background:#f0ece4;border-radius:10px;overflow:hidden"><div style="height:100%;width:${cand.score1T}%;background:${cand.color};opacity:.4;border-radius:10px"></div></div>
-              </div>`:''}`
+              ${bar1T(cand.score1T, cand.color)}`
             </div>
             ${cand.nuance?`<span class="nuance-pill" style="flex-shrink:0">${h(cand.nuance)}</span>`:''}
           </div>
@@ -917,6 +911,13 @@ function rResults(){
 // ════════════════════════════════════════════════
 // UTILS
 // ════════════════════════════════════════════════
+function bar1T(score, color){
+  if(score===null||score===undefined) return '';
+  return '<div style="margin-top:4px">'
+    +'<div style="display:flex;justify-content:space-between;font-size:.68rem;color:#999;margin-bottom:2px"><span>1er tour</span><strong style="color:#555">'+score+'%</strong></div>'
+    +'<div style="height:4px;background:#f0ece4;border-radius:10px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,score)+'%;background:'+color+';opacity:.4;border-radius:10px"></div></div>'
+    +'</div>';
+}
 function h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function j(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function eid(s){return String(s||'').replace(/[^a-zA-Z0-9]/g,'_');}
