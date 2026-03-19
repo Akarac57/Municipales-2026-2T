@@ -756,6 +756,25 @@ function upPEl(input){
   if(chip){ const ok=Math.abs(tot-100)<0.2; chip.className='tot-chip '+(ok?'tok':tot===0?'tneut':'twarn'); chip.textContent=ok?'✓ 100%':tot.toFixed(1)+'%'; }
 }
 
+
+async function submitP(){
+  const name=(document.getElementById('pname')?.value||draft.name).trim();
+  if(!name){alert('Entrez votre prénom !');return;}
+  for(let ci=0;ci<S.communes.length;ci++){
+    const com=S.communes[ci];
+    const tot=com.candidates.reduce((s,c)=>s+(draft.pronostics[`${ci}-${c.name}`]||0),0);
+    if(Math.abs(tot-100)>0.5){alert(`Total pour "${com.name||'Commune '+(ci+1)}" doit être 100% (${tot.toFixed(1)}% actuellement).`);return;}
+  }
+  await sync();
+  const ex=S.players.findIndex(p=>p.name.toLowerCase()===name.toLowerCase());
+  const entry={name,pronostics:{...draft.pronostics}};
+  if(ex>=0){if(!confirm(`"${name}" existe déjà. Remplacer ses pronostics ?`))return; S.players[ex]=entry;}
+  else S.players.push(entry);
+  await save();
+  draft={name:'',pronostics:{}};
+  document.getElementById('page-player').innerHTML=empty('✅',`Merci <strong>${h(name)}</strong> !<br>Pronostics enregistrés. Bonne chance !`);
+}
+
 // ════════════════════════════════════════════════
 // RESULTS
 // ════════════════════════════════════════════════
