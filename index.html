@@ -397,7 +397,7 @@ function rHome(){
     : `<div class="alert al-info">🔒 Paris fermés — ${n} pronostic${n>1?'s':''} enregistré${n>1?'s':''}.</div>`;
   el.innerHTML=`<div class="hero">
     <div class="hero-badge"><div class="rf-stripes" style="width:18px;height:12px;border-radius:2px"><span></span><span></span><span></span></div> République Française · Élections Municipales 2026</div>
-    <h1>Concours de <em>pronostics</em><br>du 1er tour</h1>
+    <h1>Concours de <em>pronostics</em><br>du 2ème tour</h1>
     <p>Anticipez les résultats du 2ème tour commune par commune, liste par liste.<br>Le pronostic le plus précis gagne !</p>
     <div class="hero-cards">
       ${[['⚙️','Configurer','L\'admin recherche les communes et importe les listes automatiquement.'],
@@ -915,7 +915,7 @@ function rResults(){
 function bar1T(score, color){
   if(score===null||score===undefined) return '';
   return '<div style="margin-top:4px">'
-    +'<div style="display:flex;justify-content:space-between;font-size:.68rem;color:#999;margin-bottom:2px"><span>1er tour</span><strong style="color:#555">'+score+'%</strong></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:.68rem;color:#999;margin-bottom:2px"><span>2ème tour</span><strong style="color:#555">'+score+'%</strong></div>'
     +'<div style="height:4px;background:#f0ece4;border-radius:10px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,score)+'%;background:'+color+';opacity:.4;border-radius:10px"></div></div>'
     +'</div>';
 }
