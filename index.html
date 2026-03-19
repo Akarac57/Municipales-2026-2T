@@ -478,42 +478,31 @@ function rAdmin(){
   // Real results form
   let rrHtml='';
   if(S.status==='closed'&&S.communes.length>0){
-    rrHtml=`<div class="card">
-      <span class="card-title">📥 Résultats officiels du 1er tour</span>
-      ${S.communes.map((com,ci)=>{
-        const tot=com.candidates.reduce((s,c)=>s+(parseFloat(S.realResults[`${ci}-${c.name}`])||0),0);
-        const ok=Math.abs(tot-100)<0.2;
-        return `<div style="margin-bottom:1.3rem">
-          <div class="sec-lbl">${h(com.name)} <span class="commune-tag">${h(com.codeInsee||'')}</span></div>
-          ${com.candidates.map(c=>{
-            const rval=parseFloat(S.realResults[`${ci}-${c.name}`])||0;
-            return `<div style="margin-bottom:12px">
-              <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-                <span style="width:10px;height:10px;border-radius:50%;background:${c.color};flex-shrink:0;border:1px solid rgba(0,0,0,.1)"></span>
-                <div>
-                  ${c.tete?`<div style="font-size:.72rem;color:var(--ink2);font-weight:500">${h(c.tete)}</div>`:''}
-                  <div style="font-size:.85rem;font-weight:700">${h(c.name)}</div>
-                  ${c.score1T!==null&&c.score1T!==undefined?`<div style="margin-top:4px">
-                    <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--ink3);margin-bottom:2px"><span>1er tour</span><strong>${c.score1T}%</strong></div>
-                    <div style="height:4px;background:#f0ece4;border-radius:10px;overflow:hidden"><div style="height:100%;width:${c.score1T}%;background:${c.color};opacity:.4;border-radius:10px"></div></div>
-                  </div>`:''}`
-                </div>
-                ${c.nuance?`<span class="nuance-pill" style="flex-shrink:0">${h(c.nuance)}</span>`:''}
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-                <input type="number" min="0" max="100" step="0.1" value="${rval||''}" placeholder="0"
-                  oninput="S.realResults['${ci}-${j(c.name)}']=parseFloat(this.value)||0;updRealTot(${ci})"
-                  style="width:90px;font-family:inherit;font-size:1rem;font-weight:700;border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--bg);text-align:right">
-                <span style="font-size:.9rem;color:var(--ink3)">%</span>
-              </div>
-            </div>`;
-          }).join('')}
-          <div style="text-align:right;margin-top:4px">
-            <span class="tot-chip ${ok?'tok':tot===0?'tneut':'twarn'}" id="rtot${ci}">${tot.toFixed(1)}%</span>
-          </div>
-        </div>`;}).join('')}
-      <button class="btn btn-success btn-block" onclick="doSaveReal()">💾 Enregistrer les résultats</button>
-    </div>`;
+    rrHtml='<div class="card"><span class="card-title">📥 Résultats officiels du 2ème tour</span>';
+    S.communes.forEach((com,ci)=>{
+      const tot=com.candidates.reduce((s,c)=>s+(parseFloat(S.realResults[ci+'-'+c.name])||0),0);
+      const ok=Math.abs(tot-100)<0.2;
+      rrHtml+='<div style="margin-bottom:1.3rem"><div class="sec-lbl">'+h(com.name)+' <span class="commune-tag">'+h(com.codeInsee||'')+'</span></div>';
+      com.candidates.forEach((c,ki)=>{
+        const rval=parseFloat(S.realResults[ci+'-'+c.name])||0;
+        rrHtml+='<div style="margin-bottom:12px">';
+        rrHtml+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">';
+        rrHtml+='<span style="width:10px;height:10px;border-radius:50%;background:'+c.color+';flex-shrink:0;border:1px solid rgba(0,0,0,.1)"></span>';
+        rrHtml+='<div style="flex:1">';
+        if(c.tete) rrHtml+='<div style="font-size:.72rem;color:var(--ink2);font-weight:500">'+h(c.tete)+'</div>';
+        rrHtml+='<div style="font-size:.85rem;font-weight:700">'+h(c.name)+'</div>';
+        rrHtml+=bar1T(c.score1T, c.color);
+        rrHtml+='</div>';
+        if(c.nuance) rrHtml+='<span class="nuance-pill" style="flex-shrink:0">'+h(c.nuance)+'</span>';
+        rrHtml+='</div>';
+        rrHtml+='<div style="display:flex;align-items:center;gap:8px;margin-top:6px">';
+        rrHtml+='<input type="number" min="0" max="100" step="0.1" value="'+(rval||'')+'" placeholder="0" data-ci="'+ci+'" data-ki="'+ki+'" oninput="updReal(this)" style="width:90px;font-family:inherit;font-size:1rem;font-weight:700;border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--bg);text-align:right">';
+        rrHtml+='<span style="font-size:.9rem;color:var(--ink3)">%</span>';
+        rrHtml+='</div></div>';
+      });
+      rrHtml+='<div style="text-align:right;margin-top:4px"><span class="tot-chip '+(ok?'tok':tot===0?'tneut':'twarn')+'" id="rtot'+ci+'">'+tot.toFixed(1)+'%</span></div></div>';
+    });
+    rrHtml+='<button class="btn btn-success btn-block" onclick="doSaveReal()">💾 Enregistrer les résultats</button></div>';
   }
 
   el.innerHTML=`
@@ -610,10 +599,10 @@ let _searchResults = []; // index en mémoire, évite les problèmes d'encodage 
 
 function searchCommunes(q){
   const list=document.getElementById('autocomplete-list');
-  const qn=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const qn=q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const results=[];
   for(const [code, data] of Object.entries(COMMUNES_DB)){
-    const nomN=data[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const nomN=data[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     if(nomN.startsWith(qn) || code.startsWith(q)){
       results.push({code, name:data[0], dept:data[1], listes:data[2]});
       if(results.length>=12) break;
@@ -622,7 +611,7 @@ function searchCommunes(q){
   if(results.length<5){
     for(const [code, data] of Object.entries(COMMUNES_DB)){
       if(results.find(r=>r.code===code)) continue;
-      const nomN=data[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      const nomN=data[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       if(nomN.includes(qn)){
         results.push({code, name:data[0], dept:data[1], listes:data[2]});
         if(results.length>=12) break;
@@ -674,6 +663,14 @@ function pauseSync(){
   clearTimeout(_editTimer);
   _editTimer=setTimeout(()=>{ _editing=false; }, 3000); // reprend 3s après la dernière frappe
 }
+function updReal(input){
+  const ci=parseInt(input.dataset.ci);
+  const ki=parseInt(input.dataset.ki);
+  const com=S.communes[ci];
+  if(!com||!com.candidates[ki]) return;
+  S.realResults[ci+'-'+com.candidates[ki].name]=parseFloat(input.value)||0;
+  updRealTot(ci);
+}
 function updRealTot(ci){
   pauseSync();
   const com=S.communes[ci];
@@ -703,81 +700,60 @@ function rPlayer(){
   if(S.communes.length===0){el.innerHTML=empty('⚙️','L\'admin n\'a pas encore configuré les communes.');return;}
   if(S.status==='config'){el.innerHTML=empty('🔧','Le concours n\'est pas encore ouvert. Revenez bientôt !');return;}
   if(S.status==='closed'){el.innerHTML=empty('🔒','Les paris sont fermés.<br><a href="#" onclick="goTo(\'results\');return false" style="color:var(--bleu)">Voir les résultats →</a>');return;}
-  const communes=S.communes.map((com,ci)=>{
-    const tot=com.candidates.reduce((s,c)=>s+(draft.pronostics[`${ci}-${c.name}`]||0),0);
+
+  let out='<h2 style="font-family:\'Spectral\',serif;font-size:1.5rem;font-weight:700;margin-bottom:1.3rem">🗳️ Mes pronostics</h2>';
+  out+='<div class="card"><label>Votre prénom</label><input type="text" id="pname" placeholder="Ex: Sophie" value="'+h(draft.name)+'" oninput="draft.name=this.value" style="max-width:280px"></div>';
+
+  S.communes.forEach((com,ci)=>{
+    const tot=com.candidates.reduce((s,c)=>s+(draft.pronostics[ci+'-'+c.name]||0),0);
     const ok=Math.abs(tot-100)<0.2;
-    return `<div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem">
-        <div>
-          <div style="font-weight:700;font-size:1rem">📍 ${h(com.name||`Commune ${ci+1}`)}</div>
-          <span class="commune-tag" style="margin-top:4px">${h(com.codeInsee||'')}</span>
-        </div>
-        <span class="tot-chip ${ok?'tok':tot===0?'tneut':'twarn'}" id="tot${ci}">${ok?'✓ 100%':tot.toFixed(1)+'%'}</span>
-      </div>
-      ${com.candidates.map(cand=>{
-        const val=draft.pronostics[`${ci}-${cand.name}`]||0;
-        return `<div style="margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-            <span style="width:10px;height:10px;border-radius:50%;background:${cand.color};flex-shrink:0;border:1px solid rgba(0,0,0,.1)"></span>
-            <div style="min-width:0">
-              ${cand.tete?`<div style="font-size:.78rem;color:var(--ink2);font-weight:500">${h(cand.tete)}</div>`:''}
-              <div style="font-size:.85rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(cand.name)}</div>
-              ${cand.score1T!==null&&cand.score1T!==undefined?`<div style="margin-top:5px">
-                <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--ink3);margin-bottom:2px"><span>Score 1er tour</span><strong>${cand.score1T}%</strong></div>
-                <div style="height:5px;background:#f0ece4;border-radius:10px;overflow:hidden"><div style="height:100%;width:${cand.score1T}%;background:${cand.color};opacity:.4;border-radius:10px"></div></div>
-              </div>`:''}`
-            </div>
-            ${cand.nuance?`<span class="nuance-pill" style="flex-shrink:0">${h(cand.nuance)}</span>`:''}
-          </div>
-          <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center">
-            <input type="range" min="0" max="100" step="0.5" value="${val||0}"
-              oninput="upP(${ci},'${j(cand.name)}',this.value);this.nextElementSibling.value=parseFloat(this.value).toFixed(1)"
-              style="width:100%;accent-color:${cand.color};cursor:pointer">
-            <input type="number" min="0" max="100" step="0.5" value="${val||''}" placeholder="0"
-              oninput="upP(${ci},'${j(cand.name)}',this.value)" onchange="this.previousElementSibling.value=parseFloat(this.value)||0"
-              style="width:64px;font-family:inherit;font-size:.88rem;border:1.5px solid var(--border);border-radius:8px;padding:5px 7px;background:var(--bg);text-align:right">
-            <span style="font-size:.82rem;color:var(--ink3)">%</span>
-          </div>
-          <div class="bar-wrap" style="margin-top:4px"><div class="bar-fill" id="bar${ci}_${eid(cand.name)}" style="background:${cand.color};width:${Math.min(100,val)}%"></div></div>
-        </div>`;}).join('')}
-    </div>`;}).join('');
-  el.innerHTML=`
-    <h2 style="font-family:'Spectral',serif;font-size:1.5rem;font-weight:700;margin-bottom:1.3rem">🗳️ Mes pronostics</h2>
-    <div class="card">
-      <label>Votre prénom</label>
-      <input type="text" id="pname" placeholder="Ex: Sophie" value="${h(draft.name)}" oninput="draft.name=this.value" style="max-width:280px">
-    </div>
-    ${communes}
-    <button class="btn btn-primary btn-block btn-lg" onclick="submitP()">✅ Valider mes pronostics</button>`;
+    out+='<div class="card">';
+    out+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem">';
+    out+='<div><div style="font-weight:700;font-size:1rem">📍 '+h(com.name||'Commune '+(ci+1))+'</div>';
+    out+='<span class="commune-tag" style="margin-top:4px">'+h(com.codeInsee||'')+'</span></div>';
+    out+='<span class="tot-chip '+(ok?'tok':tot===0?'tneut':'twarn')+'" id="tot'+ci+'">'+(ok?'✓ 100%':tot.toFixed(1)+'%')+'</span>';
+    out+='</div>';
+    com.candidates.forEach((cand,ki)=>{
+      const val=draft.pronostics[ci+'-'+cand.name]||0;
+      out+='<div style="margin-bottom:14px">';
+      out+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">';
+      out+='<span style="width:10px;height:10px;border-radius:50%;background:'+cand.color+';flex-shrink:0;border:1px solid rgba(0,0,0,.1)"></span>';
+      out+='<div style="min-width:0;flex:1">';
+      if(cand.tete) out+='<div style="font-size:.78rem;color:var(--ink2);font-weight:500">'+h(cand.tete)+'</div>';
+      out+='<div style="font-size:.85rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+h(cand.name)+'</div>';
+      out+=bar1T(cand.score1T, cand.color);
+      out+='</div>';
+      if(cand.nuance) out+='<span class="nuance-pill" style="flex-shrink:0">'+h(cand.nuance)+'</span>';
+      out+='</div>';
+      out+='<div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center">';
+      out+='<input type="range" min="0" max="100" step="0.5" value="'+val+'" data-ci="'+ci+'" data-ki="'+ki+'" oninput="upPEl(this)" style="width:100%;accent-color:'+cand.color+';cursor:pointer">';
+      out+='<input type="number" min="0" max="100" step="0.5" value="'+(val||'')+'" placeholder="0" data-ci="'+ci+'" data-ki="'+ki+'" oninput="upPEl(this)" onchange="this.previousElementSibling.value=parseFloat(this.value)||0" style="width:64px;font-family:inherit;font-size:.88rem;border:1.5px solid var(--border);border-radius:8px;padding:5px 7px;background:var(--bg);text-align:right">';
+      out+='<span style="font-size:.82rem;color:var(--ink3)">%</span>';
+      out+='</div>';
+      out+='<div class="bar-wrap" style="margin-top:4px"><div class="bar-fill" id="bar'+ci+'_'+eid(cand.name)+'" style="background:'+cand.color+';width:'+Math.min(100,val)+'%"></div></div>';
+      out+='</div>';
+    });
+    out+='</div>';
+  });
+  out+='<button class="btn btn-primary btn-block btn-lg" onclick="submitP()">✅ Valider mes pronostics</button>';
+  el.innerHTML=out;
 }
 
-function upP(ci,name,val){
+function upPEl(input){
   pauseSync();
-  draft.pronostics[`${ci}-${name}`]=parseFloat(val)||0;
-  const bar=document.getElementById(`bar${ci}_${eid(name)}`);
-  if(bar) bar.style.width=Math.min(100,parseFloat(val)||0)+'%';
+  const ci=parseInt(input.dataset.ci);
+  const ki=parseInt(input.dataset.ki);
   const com=S.communes[ci];
-  const tot=com.candidates.reduce((s,c)=>s+(draft.pronostics[`${ci}-${c.name}`]||0),0);
+  if(!com||!com.candidates[ki]) return;
+  const name=com.candidates[ki].name;
+  const val=parseFloat(input.value)||0;
+  draft.pronostics[ci+'-'+name]=val;
+  if(input.type==='range') input.nextElementSibling.value=val.toFixed(1);
+  const bar=document.getElementById('bar'+ci+'_'+eid(name));
+  if(bar) bar.style.width=Math.min(100,val)+'%';
+  const tot=com.candidates.reduce((s,c)=>s+(draft.pronostics[ci+'-'+c.name]||0),0);
   const chip=document.getElementById('tot'+ci);
   if(chip){ const ok=Math.abs(tot-100)<0.2; chip.className='tot-chip '+(ok?'tok':tot===0?'tneut':'twarn'); chip.textContent=ok?'✓ 100%':tot.toFixed(1)+'%'; }
-}
-
-async function submitP(){
-  const name=(document.getElementById('pname')?.value||draft.name).trim();
-  if(!name){alert('Entrez votre prénom !');return;}
-  for(let ci=0;ci<S.communes.length;ci++){
-    const com=S.communes[ci];
-    const tot=com.candidates.reduce((s,c)=>s+(draft.pronostics[`${ci}-${c.name}`]||0),0);
-    if(Math.abs(tot-100)>0.5){alert(`Total pour "${com.name||'Commune '+(ci+1)}" doit être 100% (${tot.toFixed(1)}% actuellement).`);return;}
-  }
-  await sync();
-  const ex=S.players.findIndex(p=>p.name.toLowerCase()===name.toLowerCase());
-  const entry={name,pronostics:{...draft.pronostics}};
-  if(ex>=0){if(!confirm(`"${name}" existe déjà. Remplacer ses pronostics ?`))return; S.players[ex]=entry;}
-  else S.players.push(entry);
-  await save();
-  draft={name:'',pronostics:{}};
-  document.getElementById('page-player').innerHTML=empty('✅',`Merci <strong>${h(name)}</strong> !<br>Pronostics enregistrés. Bonne chance !`);
 }
 
 // ════════════════════════════════════════════════
@@ -917,6 +893,13 @@ function rResults(){
 // ════════════════════════════════════════════════
 // UTILS
 // ════════════════════════════════════════════════
+function bar1T(score, color){
+  if(score===null||score===undefined) return '';
+  return '<div style="margin-top:4px">'
+    +'<div style="display:flex;justify-content:space-between;font-size:.68rem;color:#999;margin-bottom:2px"><span>1er tour</span><strong style="color:#555">'+score+'%</strong></div>'
+    +'<div style="height:4px;background:#f0ece4;border-radius:10px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,score)+'%;background:'+color+';opacity:.4;border-radius:10px"></div></div>'
+    +'</div>';
+}
 function h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function j(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function eid(s){return String(s||'').replace(/[^a-zA-Z0-9]/g,'_');}
